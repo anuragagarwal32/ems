@@ -1,0 +1,4 @@
+function generateSession(int $id)
+{
+	
+}
