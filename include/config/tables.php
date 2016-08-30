@@ -6,7 +6,7 @@
  * Time: 1:29 PM
  */
 
-define('TBL_PREFIX', 'tb_');
+define('TBL_PREFIX', '');
 $account = TBL_PREFIX.'accounts';
 $acl = TBL_PREFIX.'acl';
 $aliases = TBL_PREFIX.'aliases';
@@ -23,6 +23,7 @@ $groups = TBL_PREFIX.'groups';
 $group_members = TBL_PREFIX.'group_members';
 $folders = TBL_PREFIX.'imap_folders';
 $logon_failures = TBL_PREFIX.'logon_failures';
+$mailBox = TBL_PREFIX.'mailbox';
 $messages = TBL_PREFIX.'messages';
 $message_metadata = TBL_PREFIX.'message_metadata';
 $message_tags = TBL_PREFIX.'message_tags';
@@ -32,4 +33,5 @@ $searches = TBL_PREFIX.'searches';
 $search_keyword_incorrect = TBL_PREFIX.'search_keyword_incorrect';
 $server_messages = TBL_PREFIX.'server_messages';
 $whitelist = TBL_PREFIX.'whitelist';
+
 $resPerPage = 2;

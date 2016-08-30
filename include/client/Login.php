@@ -17,13 +17,14 @@ class Login
 	}
 
 	public function login(string $uname, string $password):int{
-		if(validate($uname, $password) !== 0){
+		$validated = validate($uname, $password);
+		if($validated !== 0 || $validated !== -1){
 			global $sessionName;
-			$_SESSION[$sessionName] = $id;
-			return $id;
+			$_SESSION[$sessionName] = $validated;
+			return $validated;
 		}
 		else{
-			return 0;
+			return $validated;
 		}
 		
 	}

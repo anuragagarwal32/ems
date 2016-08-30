@@ -52,13 +52,21 @@
 	function getAllFolders($imap, $mailId){
 		$mailPath =  getMailPath($mailId);
 		$folders = imap_list($imap, $mailPath, '*');
+
+		$foldersOnly = array();
+		foreach ($folders as $folder) {
+		    $folder = str_replace($mailPath, "", imap_utf7_decode($folder));
+		    array_push($foldersOnly, $folder);
+
+		}
+
 		// print_r($folders);
 		// foreach ($folders as $folder) {
 		//     $folder = str_replace($mailPath, "", imap_utf7_decode($folder));
 		//     echo '<li><a href="mail.php?folder=' . $folder . '&func=view">' . $folder . '</a></li>';
 		// }
 		// echo "</ul>";
-		// return $folders;
+		return $foldersOnly;	
 	}
 	
 	// getAllFolders(imapConnect('localhost', 'anurag@anurag.com', 'anurag', 'INBOX'), 'localhost');

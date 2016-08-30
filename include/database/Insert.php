@@ -6,7 +6,7 @@
  * Time: 9:37 AM
  */
 
-namespace database\Database;
+namespace database;
 use PDO;
 require_once 'Database.php';
 class Insert extends Database
@@ -26,13 +26,12 @@ class Insert extends Database
 			}
 			$columnList = rtrim($columnList, ',');
 			$bindList = rtrim($bindList, ',');
-//			echo 'INSERT INTO '.$table_name.' ('.$columnList.') VALUES ('.$bindList.')';
+			// echo 'INSERT INTO '.$table_name.' ('.$columnList.') VALUES ('.$bindList.')';
 			$stmt =$this->getConnect()->prepare('INSERT INTO '.$table_name.' ('.$columnList.') VALUES ('.$bindList.')');
 			$stmt = $this->bind($stmt, $column);
 			if($stmt->execute()){
 				$this->setInsertId($this->getConnect()->lastInsertId());
 				$stmt->closeCursor();
-				$this->closeConnection();
 				return true;
 			}
 		}

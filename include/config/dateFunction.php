@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: raxor
- * Date: 7/9/2016
- * Time: 6:26 PM
- */
+date_default_timezone_set('Asia/Kolkata');
 
 function getCurrentDateTime(){
 	return date('y-m-d H:i:s');

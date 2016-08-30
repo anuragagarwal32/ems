@@ -14,16 +14,19 @@ function validate(
 	string $pass
 ) : int{
 	
-	$obj = new Select();
+	$db = Database::getInstance()->getConnect();
 	global $account;
 	
-	$stmt = $this->getDb()->prepare('SELECT id, password FROM '.$this->getAccount().'WHERE uname=:uname');
+	$stmt = $db->prepare('SELECT id, pass, active FROM '.$this->getAccount().'WHERE username=:uname');
 	$stmt->bindParam(':uname', $uname, PDO::PARAM_STR);
 	$stmt->execute();
 	$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	if(count($result) > 0){
 		$result = $result[0];
-		if(password_verify($pass, $result['password'])){
+		if(password_verify($pass, $result['pass'])){
+			if($result['active'] === 0){
+				return -1;
+			}
 			return $result['id'];
 		}
 		else{

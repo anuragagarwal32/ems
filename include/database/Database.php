@@ -1,6 +1,6 @@
 <?php
 
-namespace database\Database;
+namespace database;
 
 use PDO;
 require_once '/../config/tables.php';
@@ -19,7 +19,7 @@ class Database
 		$this->setUname('root');
 		$this->setHost('localhost');
 		$this->setPass('');
-		$this->setDbName('auction');
+		$this->setDbName('ems');
 		try{
 			$this->setConnect(new PDO('mysql:host='.$this->getHost().';dbname='.$this->getDbName(), $this->getUname(), $this->getPass()));
 			$this->getConnect()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

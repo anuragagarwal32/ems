@@ -6,7 +6,7 @@
  * Time: 9:46 AM
  */
 
-namespace database\Database;
+namespace database;
 use DateTime;
 use PDO;
 require_once 'Database.php';
