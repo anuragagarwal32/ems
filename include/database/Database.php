@@ -3,7 +3,6 @@
 namespace database\Database;
 
 use PDO;
-require_once '/../config/path.php';
 require_once '/../config/tables.php';
 class Database
 {

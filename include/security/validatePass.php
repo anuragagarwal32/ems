@@ -8,23 +8,23 @@
 namespace database\Database;
 
 require_once 'GeneratePassword.php';
-require_once '../database/Select.php';
+require_once '../database/Database.php';
 function validate(
 	string $uname,
 	string $pass
 ) : int{
+	
 	$obj = new Select();
-	global $users;
-	$result = $obj->select_query(
-			$users,
-			array('uid', 'pass'),
-			array('uname' => array($uname, '='), 'email1' => array($uname, '=')),
-			'OR'
-		);
+	global $account;
+	
+	$stmt = $this->getDb()->prepare('SELECT id, password FROM '.$this->getAccount().'WHERE uname=:uname');
+	$stmt->bindParam(':uname', $uname, PDO::PARAM_STR);
+	$stmt->execute();
+	$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 	if(count($result) > 0){
 		$result = $result[0];
-		if(password_verify($pass, $result['pass'])){
-			return $result['uid'];
+		if(password_verify($pass, $result['password'])){
+			return $result['id'];
 		}
 		else{
 			return 0;

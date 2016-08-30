@@ -1,4 +1,0 @@
-function generateSession(int $id)
-{
-	
-}
