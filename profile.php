@@ -2,7 +2,7 @@
         <?php
             require_once 'header.php';
         ?>
-        ]
+        
         <!-- BEGIN PAGE LEVEL PLUGINS -->
         <link href="assets/global/plugins/bootstrap-fileinput/bootstrap-fileinput.css" rel="stylesheet" type="text/css" />
         <!-- END PAGE LEVEL PLUGINS -->
@@ -142,7 +142,7 @@
                                                     <i class="icon-settings"></i> Account Settings </a>
                                             </li>
                                             <li>
-                                                <a href="page_userhelp.php">
+                                                <a href="help.php">
                                                     <i class="icon-info"></i> Help </a>
                                             </li>
                                         </ul>
