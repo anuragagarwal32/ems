@@ -4,6 +4,7 @@ namespace database;
 
 use PDO;
 require_once '/../config/tables.php';
+require_once '/../config/path.php';
 class Database
 {
 	private $_dbName;

@@ -10,23 +10,29 @@ namespace database\Database;
 require_once 'GeneratePassword.php';
 require_once '../database/Select.php';
 function validate(
-	int $uid,
+	int $id,
 	string $pass
 ) : int{
-	$obj = new Select();
-	global $users;
-	$result = $obj->select_query(
-		$users,
-		array('pass'),
-		array('uid' => array($uid, '='))
-	);
+	
+	$db = Database::getInstance()->getConnect();
+	global $account;
+	
+	$stmt = $db->prepare('SELECT id, pass, active FROM '.$this->getAccount().'WHERE id=:id');
+	$stmt->bindParam(':id', $id, PDO::PARAM_INT);
+	$stmt->execute();
+	$result = $stmt->fetch(PDO::FETCH_ASSOC);
 	if(count($result) > 0){
-		$result = $result[0];
 		if(password_verify($pass, $result['pass'])){
-			return true;
+			if($result['active'] === 0){
+				return -1;
+			}
+			return $result['id'];
+		}
+		else{
+			return 0;
 		}
 	}
 	else{
-		return false;
+		return 0;
 	}
 }

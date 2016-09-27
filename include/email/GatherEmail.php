@@ -1,28 +1,44 @@
 <?php
-namespace email;
+namespace PhpImap;
 
+/*
+	Dealing with inline/embedded attachments 
+	http://www.electrictoolbox.com/php-imap-message-body-attachments/
+	http://www.electrictoolbox.com/php-email-extract-inline-image-attachments/
 
+	https://www.daniweb.com/programming/web-development/threads/404586/how-to-extract-images-embedded-in-an-email-message
+
+	http://stackoverflow.com/questions/15024290/how-to-extract-inline-imagesnot-attachment-from-an-email-using-imap-in-php
+
+ */
 use database\Insert;
 use database\Database;
 use PDO;
+use DOMDocument;
 require_once '/../database/Database.php';
 require_once '/../database/Insert.php';
-require_once '/../imap/imap_connect.php';
 require_once '/../client/getSessionId.php';
 require_once '/../security/EmailPassword.php';
 require_once '/../config/dateFunction.php';
+require_once 'Mailbox.php';
+require_once 'getParentId.php';
+require_once '/../Contact/Contact.php';
+
 class GatherEmail
 {
 	private $_insert;
 	private $_db;
 	private $_mailbox;
 	private $_folder;
+	private $_attachment;
+
 	public function __construct(){
 		$this->setInsert(new Insert());
 		$this->setDb(Database::getInstance()->getConnect());
-		global $mailBox, $folders;
+		global $mailBox, $folders, $attachments;
 		$this->setMailbox($mailBox);
 		$this->setFolder($folders);
+		$this->setAttachmentTable($attachments);
 	}
 
 	/**
@@ -33,6 +49,7 @@ class GatherEmail
 	 * @return [bool]                     [description]
 	 */
 	public function gather(int $id, bool $lastBufferCache = true):bool{
+		
 		// todo: Get the email address of the user, from the id mentioned
 		
 		// todo: Get the emails from demo address, unread only, not read.
@@ -40,9 +57,18 @@ class GatherEmail
 		// https://davidwalsh.name/gmail-php-imap
 		
 		// todo: to get the last buffer for each folder from imap_folder table of database ($lastBufferCache)
-		// todo: Insert Folders for first time.
+		// 
+		// todo: Batch Processing for uninterrupted
+		// 
+		// todo: Add Uid round_robin algo for processing the emails to all the users equally
+		// 
+		// todo: For cron job, the aid=:id has to be removed because all the emails are needed to be traversed time to time.
 
-		$stmt = $this->getDb()->prepare('SELECT mid, email, domain, pass FROM '.$this->getMailbox().' WHERE aid=:id');
+		// Get the parent id, if exists else give the id for the same
+		// $id = getParentId($id);
+		
+		
+		$stmt = $this->getDb()->prepare('SELECT mid, email, domain, pass, port FROM '.$this->getMailbox().' WHERE aid=:id');
 
 		$stmt->bindParam(':id', $id, PDO::PARAM_INT);
 		$stmt->execute();
@@ -50,12 +76,20 @@ class GatherEmail
 		foreach ($emails as $email) {
 
 			$pass = decrypt($email['pass']);
-			$imap = imapConnect($email['domain'], $email['email'], $pass, 'Inbox');
-			$folders = getAllFolders($imap, 'localhost');
+			
+			$server = new Mailbox($email['domain'], $email['email'], $pass, DIR_ATTACHMENT, $email['port']);
+			
+			$folders = $server->getListingFolders();
+			// Folder has Domain with it
+
 			echo '<br> Email Address : '.$email['email'];
 			
 			foreach ($folders as $folder) {
-				echo '<br> Folder :  '.$folder;
+				
+				
+				// $trimFolder = ltrim($folder, $server->getServerString());
+				// echo '<br> Folder :  '.$folder;
+				
 
 				if(!$lastBufferCache){
 					$lastMsgBuffer = 0;
@@ -78,120 +112,201 @@ class GatherEmail
 					}
 				}
 
-				$imap = imapConnect($email['domain'], $email['email'], $pass, $folder);
-				$numMessages = imap_num_msg($imap);
+				$server->switchMailbox($folder);
+				echo $server->getImapPath();
+				// // $imap = imapConnect($email['domain'], $email['email'], $pass, $folder);
+				$numMessages = $server->countMails();
 				$lastMessageId = 0;
 				$lastIdChanged = false;
+				
 				for ($i = $numMessages; $i > $lastMsgBuffer; $i--) {
+
 					$lastIdChanged = true;
-				    $header = imap_header($imap, $i);
-				    
-				    $Xheader = imap_fetchheader($imap, $i);
-				    preg_match_all('/([^: ]+): (.+?(?:\r\n\s(?:.+?))*)\r\n/m', 
-				        $Xheader, $matches);
-					$Xheader = array_combine($matches[1], $matches[2]);
 					
-				    // print_r($Xheader);
-				    // echo '<br>';
-				    // print_r($folders($header);
-				    // Combined Header is Xheader and $header attributes
+					echo '<br><br><br>';
+				    $mailArr = $server->getMail($i);
+
+				    // Mail Id
+				    $messageId = $this->removeBrackets(isset($mailArr->headers->message_id) ? $mailArr->headers->message_id : null);
 				    
-				    $fromInfo = $header->from[0];
-				    $replyInfo = $header->reply_to[0];
-				    // Status Information
+				    // Mail Unique identifier (uid)
+				    $uid = $mailArr->id;
+				    
+				    // Reply for Mail Id
+				    $replyMid = null;
+				    $replyCond = 0;
+				    if(isset($mailArr->headers->in_reply_to)){
+				    	$replyCond = 1;
+				    	$replyMid = $this->removeBrackets(isset($mailArr->headers->in_reply_to) ? $mailArr->headers->in_reply_to : null);
+				    }
+
+
+				    if(!empty($mailArr->textHtml) || !is_null($mailArr->textHtml)){
+				    	
+				    	if(count($mailArr->getAttachments()) > 0){
+				    		$message = $mailArr->textHtml;
+				    		$doc = new DOMDocument();
+							$doc->loadHTML($message);
+							$tags = $doc->getElementsByTagName('img');
+							$counter = 0;
+				    		foreach ($mailArr->getAttachments() as $key => $value) {
+					   
+					    		if($value->disposition == 'inline'){
+					    			
+	    							if (count($tags) > 0) {
+								        $tag = $tags->item($counter);
+								        $old_src = $tag->getAttribute('src');
+								        
+								        // todo: Change the attachment folder location depth to 0 because for testing it is done at a height from this folder of 3
+
+								        $filename = ltrim($value->filePath, DIR_ATTACHMENT);
+
+								        $new_src_url = HOST_ATTACHMENT.$filename;
+								        $tag->setAttribute('src', $new_src_url);
+								        
+								        
+								    }
+					    		}
+					    		$counter++;
+					    	}
+					    	
+					    	$message = $doc->saveHTML();
+				    	}
+				    	
+				    }
+				    else{
+				    	$message = $mailArr->textPlain;
+				    }
+				    $attachmentCond = 0;
+				    if(count($mailArr->getAttachments()) > 0){
+				    	$attachments = array();
+				    	$attachmentCond = 1;
+				    	foreach ($mailArr->getAttachments() as $key => $value) {
+				    		if($value->disposition == 'attachment'){
+				    			
+				    			 array_push($attachments, array('actual' => $value->name, 'save' => ltrim($value->filePath, DIR_ATTACHMENT)));
+				    			
+				    		}
+				    	}
+
+				    }
+
+				    // echo $message;
 				   	$status = '';
-				    if($header->Unseen == 'U'){
+				    if($mailArr->unseen == 'U'){
 				    	$status = 'U';
 				    }
-				    else if($header->Flagged == 'F'){
+				    else if($mailArr->flagged == 'F'){
 				    	$status = 'F';
 				    }
-				    else if($header->Answered == 'A'){
+				    else if($mailArr->answered == 'A'){
 				    	$status = 'A';
 				    }
-				    else if($header->Deleted == 'D'){
+				    else if($mailArr->deleted == 'D'){
 				    	$status = 'D';
 				    }
 
-				    $cc = array();
-			    	$ccName = array();
+			    	$ccEnable = false;
+				    if(isset($mailArr->cc) && count($mailArr->cc) > 0){
+				    	$ccEnable = true;
+				    }
 				    
-				    if(isset($header->cc)){
-				    	
-				    	foreach ($header->cc as $ccVal) {
-				    		array_push($cc, (isset($ccVal->mailbox) && isset($ccVal->host)) ? $ccVal->mailbox . "@" . $ccVal->host : "");
-				    		array_push($ccName, (isset($ccVal->personal) ? $ccVal->personal : ''));
-				    	}
-				    }
-
-				    $bcc = array();
-			    	$bccName = array();
-
-				    if(isset($header->bcc)){
-				    	
-				    	foreach ($header->bcc as $bccVal) {
-				    		array_push($bcc, (isset($bccVal->mailbox) && isset($bccVal->host)) ? $bccVal->mailbox . "@" . $bccVal->host : "");
-				    		array_push($bccName, (isset($bccVal->personal) ? $bccVal->personal : ''));
-				    	}
-				    }
-
-				    $messageId = $this->removeBrackets(isset($header->message_id) ? $header->message_id : null);
 				    
-				    $reply = false;
-				    $replyForMessageId = '';
-				    if(isset($header->in_reply_to)){
-				    	$reply = true;
-				    	$replyForMessageId = $this->removeBrackets($header->in_reply_to);
+			    	$bccEnable = false;
+				    if(isset($mailArr->bcc) && count($mailArr->bcc) > 0){
+				    	$bccEnable = true;
 				    }
-
-				    $details = array(
-				        "fromAddr" => (isset($fromInfo->mailbox) && isset($fromInfo->host))
-				            ? $fromInfo->mailbox . "@" . $fromInfo->host : "",
-				        "fromName" => (isset($fromInfo->personal))
-				            ? $fromInfo->personal : "",
-				        "replyAddr" => (isset($replyInfo->mailbox) && isset($replyInfo->host))
-				            ? $replyInfo->mailbox . "@" . $replyInfo->host : "",
-				        "replyName" => (isset($replyInfo->personal))
-				            ? $replyInfo->personal : "",
-				        "subject" => (isset($header->subject))
-				            ? $header->subject : "",
-				        "udate" => (isset($header->udate))
-				            ? $header->udate : "",
-				    );
-
-				    $uid = imap_uid($imap, $i);
 
 				    if($i == $numMessages){
 				    	$lastMessageId = $uid;
 				    }
 
-				    global $messages;
-				    // if($this->getInsert()
-				    // 	->insert_query(
-				    // 		$messages,
-				    // 		array(
-				    // 			'accountid' => $id,
-				    // 			'folderId' => $folderId,
-				    // 			'subject' => $details['subject'],
-				    // 			'message' => $message,
-				    // 			''
+				    if(isset($mailArr->headers->reply_toaddress) && !empty($mailArr->headers->reply_toaddress)){
+				    	$replyAddr = $mailArr->headers->reply_toaddress;
+				    }
+				    else{
+				    	$replyAddr = null;
+				    }
+					global $messages, $message_metadata, $message_recipient;
+					// todo: Add table for cc and bcc, calculate the size of the mail
+				    $uid = (int) $uid;
+				    $replyToAddress = null;
+				    if(isset($mailArr->headers->reply_toaddress) && !empty($mailArr->headers->reply_toaddress)){
+				    	$replyToAddress = $mailArr->headers->reply_toaddress;
+				    }
+				    else{
+				    	$replyToAddress = null;
+				    }
 
-			    	// 		)
-			    	// 	)){
-				    // 		
-				    // }
-				    // else{
+				    if(is_null($message)){
+				    	$message = '';
+				    }
+				    echo $message;
 
-				    // }
+				    $cid = $this->getContactId($mailArr->toString);
 
-				    echo "<ul>";
-				    echo "<li><strong>From:</strong>" . $details["fromName"];
-				    echo " " . $details["fromAddr"] . "</li>";
-				    echo "<li><strong>Subject:</strong> " . $details["subject"] . "</li>";
-				    echo '<li><a href="mail.php?folder='  . '&uid=' . $uid . '&func=read">Read</a>';
-				    echo " | ";
-				    echo '<a href="mail.php?folder='  . '&uid=' . $uid . '&func=delete">Delete</a></li>';
-				    echo "</ul>";
+				    if($this->getInsert()
+				    	->insert_query(
+				    		$messages,
+				    		array(
+								'uid' => $uid,
+				    			'messageId' => $messageId,
+				    			'mailboxid' => (int) $email['mid'],
+				    			'folderId' => (int) $folderId,
+				    			'subject' => $mailArr->subject,
+				    			'message' => $message,
+				    			'type' => $status,
+				    			'fromname' => $mailArr->fromName,
+				    			'fromaddr' => $mailArr->fromAddress,
+				    			'toemail' => $mailArr->toString,
+				    			'createtime' => $mailArr->date,
+				    			'reply_toaddress' => $mailArr->headers->reply_toaddress,
+				    			'replyon' => $replyCond,
+				    			'replymid' => $replyMid,
+				    			'attatchmnetenable' => $attachmentCond,
+				    			'xheader' => $mailArr->headersRaw,
+				    			'cid' => $cid
+			    			)
+			    		)){
+				    		$insertId = $this->getInsert()->getInsertId();
+				    		// todo: Insert Message Meta Data
+				    		
+				    		if($ccEnable){
+				    			
+				    			foreach ($mailArr->cc as $key => $value) {
+				    				$this->getInsert()->insert_query($message_recipient,
+				    					array(
+				    						'messageId' => $messageId,
+				    						'uid' => $uid,
+				    						'type' => 0,
+				    						'email' => $key,
+				    						'name' => $value
+			    						));
+				    			}
+				    		}
+				    		if($bccEnable){
+				    			foreach ($mailArr->bcc as $key => $value) {
+				    				$this->getInsert()->insert_query($message_recipient,
+				    					array(
+				    						'messageId' => $messageId,
+				    						'uid' => $uid,
+				    						'type' => 1,
+				    						'email' => $key,
+				    						'name' => $value
+			    						));
+				    			}
+				    		}
+				    		// Attachments are inserted
+				    		if($attachmentCond == 1){
+				    			foreach ($attachments as $key => $value) {
+					    			$this->getInsert()->insert_query($this->getAttachmentTable(), array('message_id' => $insertId, 'actualfilelocation' => $value['save'], 'correctfilename' => $value['actual'], 'fileextension' => pathinfo($value['actual'], PATHINFO_EXTENSION)));
+					    		}
+				    		}
+				    }
+				    else{
+				    	echo 'Error in inserting the message';
+				    }
+
 				}
 
 				if($lastIdChanged){
@@ -237,14 +352,30 @@ class GatherEmail
 		return false;
 	}
 
-	public function insertMessage(){
-
+	public function getContactId(string $email){
+		try{
+			$contact = new Contact();
+			return $contact->getContactId($email);
+		}
+		catch(\PDOException $e){
+			// todo: Error Handling
+			echo 'Exception in GatherEmail '.$e->getMessage();
+		}
+		return null;
 	}
 
 	public function removeBrackets($str){
 		$str = ltrim($str, '<');
 	    $str = rtrim($str, '>');
 	    return $str;
+	}
+
+	public function queueManagement(int $mid){
+		// todo: Manage mails for current mail id and view in associated mail id for the user who are associated to that mail id and then send the mails to them.
+		// 
+		// A queue number is added in mailbox table for getting the last queue number of the user, the queue number should not be used for sent folder because they are the emails which are send by us not came from them.
+		// 
+		// Initially the folder should take the emails in send but when the project starts the send emails are not necessarily be taken from the email box of gmail etc or it can be taken into consideration but they will create a confustion as, to whom the reply will be associated.
 	}
 
 	public function setInsert($insert){
@@ -285,6 +416,14 @@ class GatherEmail
 
 	public function setFolder($folder){
 		$this->_folder = $folder;
+	}
+
+	public function getAttachmentTable(){
+		return $this->_attachment;
+	}
+
+	public function setAttachmentTable($attachment){
+		$this->_attachment = $attachment;
 	}
 }
 

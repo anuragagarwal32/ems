@@ -1,0 +1,20 @@
+[id] => 5
+[date] => 2016-08-31 00:48:29 
+[headersRaw] => Return-Path: admin@anurag.com Received: from raxor (activate.adobe.com [127.0.0.1]) by RAXOR with ESMTP ; Tue, 30 Aug 2016 12:18:29 -0700 Message-ID: Subject: This is BCC Message To: anurag@anurag.com X-PHP-Originating-Script: 0:rcube.php MIME-Version: 1.0 Content-Type: text/plain; charset=US-ASCII; format=flowed Content-Transfer-Encoding: 7bit Date: Tue, 30 Aug 2016 12:18:29 -0700 From: admin@anurag.com BMessage-ID: X-Sender: admin@anurag.com User-Agent: Roundcube Webmail/1.2.0 
+[headers] => stdClass Object ( [date] => Tue, 30 Aug 2016 12:18:29 -0700 [Date] => Tue, 30 Aug 2016 12:18:29 -0700 [subject] => This is BCC Message [Subject] => This is BCC Message [message_id] => [toaddress] => anurag@anurag.com [to] => Array ( [0] => stdClass Object ( [mailbox] => anurag [host] => anurag.com ) ) [fromaddress] => admin@anurag.com [from] => Array ( [0] => stdClass Object ( [mailbox] => admin [host] => anurag.com ) ) [reply_toaddress] => admin@anurag.com [reply_to] => Array ( [0] => stdClass Object ( [mailbox] => admin [host] => anurag.com ) ) [senderaddress] => admin@anurag.com [sender] => Array ( [0] => stdClass Object ( [mailbox] => admin [host] => anurag.com ) ) )
+[subject] => This is BCC Message
+[fromName] => 
+[fromAddress] => admin@anurag.com 
+[to] => Array ( [anurag@anurag.com] => ) 
+[toString] => anurag@anurag.com 
+[cc] => Array ( ) [bcc] => Array ( ) 
+[replyTo] => Array ( [admin@anurag.com] => ) 
+[messageId] => 
+[textPlain] => This is a cool seniario 
+[textHtml] => 
+
+[[attachments:protected] => Array ( [147261128557c643d517c69900483033@anurag.com] => PhpImap\IncomingMailAttachment Object ( [id] => 147261128557c643d517c69900483033@anurag.com [name] => 1471943380813.jpg [filePath] => C:\xampp\htdocs\ems\include\MailBox\attach\3_147261128557c643d517c69900483033@anurag.com_1471943380813.jpg [disposition] => inline ) ) ) 
+
+ [attachments:protected] => Array ( [2059270612053019253] => PhpImap\IncomingMailAttachment Object ( [id] => 2059270612053019253 [name] => final.png [filePath] => C:\xampp\htdocs\ems\include\MailBox\attach\5_2059270612053019253_final.png [disposition] => attachment ) [1201931662374874026] => PhpImap\IncomingMailAttachment Object ( [id] => 1201931662374874026 [name] => ems_workflow.txt [filePath] => C:\xampp\htdocs\ems\include\MailBox\attach\5_1201931662374874026_ems_workflow.txt [disposition] => attachment ) ) ) 
+
+ 

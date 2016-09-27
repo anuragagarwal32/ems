@@ -1,0 +1,76 @@
+WorkFlow:
+
+
+Require Command:
+
+<?php
+	require_once 'header.php';
+?>
+
+Designing-
+
+Parul:
+1. Login (already exists) (page_user_login_1.html)
+2. Signup
+3. Mail Box Dashboard (Dashboard.png)
+4. Mail Area or Inbox (app_inbox.html)
+5. Profile (already exists) (page_user_profile_1.html, page_user_profile_1_account.html, page_user_profile_1_help.html)
+6. Settings
+7. Add / Edit / Remove Mail boxes
+8. Session TimeOut Page (already exists) (page_user_lock_1.html)
+9. Spam Filtering
+	a. Add new spam rule
+	b. Remove / Edit
+10. Todo Management (already exists) (app_todo_2.html)
+
+KP:
+1. Employee Management
+	a. add Employee
+	b. Remove / Edit
+	c. Access Control List (at end)
+	d. Work Graph (at end)
+2. Mail View Area (mail *.png)
+3. Contact Management: (mail *.png)
+	a. Add / Edit / Remove Contact (in mail area)
+4. Settings
+5. 404 Page (already exists) (page_system_404_3.html)
+6. 500 Page (already exists) (page_system_500_1.html)
+7. About Us (already exists) (page_general_about.html)
+8. Contact Us (already exists) (page_general_contact.html)
+
+Core Programming:
+
+Total Features:
+1. Login
+2. Signup
+3. Employee Management
+	i. Add Employee
+	ii. Remove / Edit
+	iii. WorkGraph
+	iv. Access Control List (Group wise)
+4. Spam Filtering
+5. Auto reply
+6. CC/BCC/Add Attachment/Starred Emails/Mailbox Folders
+7. Add notes
+8. Transfer Mail
+9. Search Via Query, date & time (Advance Search)
+10. Tag Management
+11. Reports
+12. Profile of User
+13. Contact Management
+	i. Add contact
+	ii. Edit Contact
+	iii. Remove Contact
+14. Settings
+15. Mailboxes (done)
+	i. Add Mail Boxes
+	ii. Edit Mail Boxes
+	iii. Remove Mail Boxes
+16. Email Management
+
+Anurag:
+1, 4, 5, 16, 6, 9, 15, 3 iii, 3 iv
+
+
+Shivangi:
+2, 7, 8, 10, 12, 13, 14, 3 i, 3 ii

@@ -1,0 +1,43 @@
+[type] => 1
+[encoding] => 0
+[ifsubtype] => 1
+[subtype] => RELATED
+[ifdescription] => 0
+[ifid] => 0
+[ifdisposition] => 0
+[ifdparameters] => 0
+[ifparameters] => 1
+[parameters] => Array (
+    [0] => stdClass Object (
+    [attribute] => BOUNDARY
+    [value] => =_3b97047a10f5bf75283aa735f294204e )
+    )
+[parts] => Array (
+    [0] => stdClass Object (
+    [type] => 5
+    [encoding] => 3
+    [ifsubtype] => 1
+    [subtype] => JPEG
+    [ifdescription] => 0
+    [ifid] => 1
+    [lines] => 7
+    [bytes] => 42752
+    [ifdisposition] => 1
+    [ifdparameters] => 1
+    [ifparameters] => 1
+    [parameters] => Array (
+        [0] => stdClass Object (
+        [attribute] => NAME
+        [value] => 1471943380813.jpg )
+        )
+    [) 1] => stdClass Object (
+    [id] => <147261128557c643d517c69900483033@anurag.com>
+    [disposition] => inline
+    [dparameters] => Array (
+        [0] => stdClass Object (
+        [attribute] => FILENAME
+        [value] => 1471943380813.jpg )
+        )
+    )
+[) stdClass Object ( type] => 1
+[lines] => 1
